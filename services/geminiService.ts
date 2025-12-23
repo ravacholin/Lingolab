@@ -15,9 +15,17 @@ const getAudioContext = () => {
   return audioContext;
 };
 
+const getApiKey = (): string => {
+  const key = localStorage.getItem('lingoLens_apiKey');
+  if (!key) {
+    throw new Error("API Key missing. Please set it in the app settings.");
+  }
+  return key;
+};
+
 export const generatePhrasesFromImage = async (base64Image: string, mimeType: string, customPrompt?: string): Promise<Phrase[]> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
     let promptText = `
       ROLE: You are a helpful local guide and language tutor helping a traveler.
@@ -100,7 +108,7 @@ export const generatePhrasesFromImage = async (base64Image: string, mimeType: st
 
 export const playTextToSpeech = async (text: string, voiceName: 'Kore' | 'Puck' = 'Kore'): Promise<void> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text: text }] }],

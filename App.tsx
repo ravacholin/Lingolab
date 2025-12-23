@@ -3,16 +3,27 @@ import Header from './components/Header';
 import ImageUploader from './components/ImageUploader';
 import PhraseList from './components/PhraseList';
 import SavedPhrases from './components/SavedPhrases';
+import ApiKeyScreen from './components/ApiKeyScreen';
 import { generatePhrasesFromImage } from './services/geminiService';
 import { Phrase, SavedPhrase, AppState } from './types';
 import { Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
+  const [hasApiKey, setHasApiKey] = useState<boolean>(false);
+  const [checkingKey, setCheckingKey] = useState<boolean>(true);
+
   const [appState, setAppState] = useState<AppState>(AppState.HOME);
   const [phrases, setPhrases] = useState<Phrase[]>([]);
   const [savedPhrases, setSavedPhrases] = useState<SavedPhrase[]>([]);
   const [currentImage, setCurrentImage] = useState<{base64: string, mimeType: string} | null>(null);
   const [initialContext, setInitialContext] = useState<string>(""); // Store the original topic
+
+  // Check for API key on mount
+  useEffect(() => {
+    const key = localStorage.getItem('lingoLens_apiKey');
+    setHasApiKey(!!key);
+    setCheckingKey(false);
+  }, []);
 
   // Load saved phrases on mount
   useEffect(() => {
@@ -42,7 +53,7 @@ const App: React.FC = () => {
       setAppState(AppState.RESULTS);
     } catch (error) {
       console.error(error);
-      alert("Something went wrong analyzing the image. Please try again.");
+      alert("Something went wrong analyzing the image. Please try again or check your API Key.");
       setAppState(AppState.HOME);
     }
   };
@@ -83,6 +94,14 @@ const App: React.FC = () => {
   };
 
   const savedIds = new Set(savedPhrases.map(p => p.portuguese));
+
+  if (checkingKey) {
+    return <div className="min-h-screen bg-[#f0f0f0]" />; // Loading state
+  }
+
+  if (!hasApiKey) {
+    return <ApiKeyScreen onKeySaved={() => setHasApiKey(true)} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f0f0f0]">
