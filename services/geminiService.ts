@@ -2,20 +2,6 @@ import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Phrase } from "../types";
 import { decode, decodeAudioData } from "./audioUtils";
 
-// Helper to get the authenticated client dynamically
-const getAIClient = () => {
-  const storedKey = localStorage.getItem('lingoLens_apiKey');
-  const envKey = process.env.API_KEY;
-  
-  const apiKey = storedKey || envKey;
-
-  if (!apiKey) {
-    throw new Error("API Key not found. Please enter your key in the settings.");
-  }
-
-  return new GoogleGenAI({ apiKey });
-};
-
 // Reuse AudioContext to prevent initialization lag and browser limits
 let audioContext: AudioContext | null = null;
 
@@ -31,7 +17,7 @@ const getAudioContext = () => {
 
 export const generatePhrasesFromImage = async (base64Image: string, mimeType: string, customPrompt?: string): Promise<Phrase[]> => {
   try {
-    const ai = getAIClient();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     let promptText = `
       ROLE: You are a helpful local guide and language tutor helping a traveler.
@@ -114,7 +100,7 @@ export const generatePhrasesFromImage = async (base64Image: string, mimeType: st
 
 export const playTextToSpeech = async (text: string, voiceName: 'Kore' | 'Puck' = 'Kore'): Promise<void> => {
   try {
-    const ai = getAIClient();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",
       contents: [{ parts: [{ text: text }] }],
